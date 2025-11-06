@@ -23,13 +23,20 @@ const options = {
         bearerAuth: { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' }
       }
     },
-    security: [{ bearerAuth: [] }]
+    // 🔹 Removendo a exigência global de autenticação
+    // security: [{ bearerAuth: [] }]
   },
   apis: ['./src/routes/*.ts']
 }
 
 const swaggerSpec = swaggerJSDoc(options)
-app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec))
+
+// 🔹 Permitir acesso público ao Swagger UI
+app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
+  swaggerOptions: {
+    persistAuthorization: true, // mantém token entre testes, se quiser
+  }
+}))
 
 app.use('/api/auth', authRoutes)
 app.use('/api/users', usersRoutes)

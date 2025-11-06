@@ -20,23 +20,23 @@ jobs:
       # API
       - name: Install API dependencies
         run: |
-          cd api
+          cd API
           npm install
 
       - name: Build API
         run: |
-          cd api
+          cd API
           npm run build
 
-      # Frontend
-      - name: Build Frontend
+      # Site (Frontend)
+      - name: Build Site
         run: |
-          cd frontend
-          npm install
-          npm run build || echo "No build script, skipping"
+          cd Site
+          npm install || echo "Sem dependências npm no frontend"
+          npm run build || echo "Sem script build, ignorando"
 
-      # Optional: Build Docker images to validate
+      # Testar build Docker
       - name: Build Docker images
         run: |
-          docker build -t ci-api-test ./api
-          docker build -t ci-frontend-test ./frontend
+          docker build -t ci-api-test ./API
+          docker build -t ci-site-test ./Site
