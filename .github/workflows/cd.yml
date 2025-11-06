@@ -1,0 +1,56 @@
+name: CD - Main
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    env:
+      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+      AZURE_API_APP_NAME: "NOME_DO_APP_API"
+      AZURE_FRONTEND_APP_NAME: "NOME_DO_APP_FRONT"
+      AZURE_RESOURCE_GROUP: "NOME_DO_RESOURCE_GROUP"
+      AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Login DockerHub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ env.DOCKERHUB_USERNAME }}
+          password: ${{ env.DOCKERHUB_TOKEN }}
+
+      # Build e push API Docker image
+      - name: Build API Docker image
+        run: docker build -t ${{ env.DOCKERHUB_USERNAME }}/meu-projeto-api:latest ./api
+      - name: Push API Docker image
+        run: docker push ${{ env.DOCKERHUB_USERNAME }}/meu-projeto-api:latest
+
+      # Build e push Frontend Docker image
+      - name: Build Frontend Docker image
+        run: docker build -t ${{ env.DOCKERHUB_USERNAME }}/meu-projeto-frontend:latest ./frontend
+      - name: Push Frontend Docker image
+        run: docker push ${{ env.DOCKERHUB_USERNAME }}/meu-projeto-frontend:latest
+
+      # Deploy API no Azure
+      - name: Deploy API to Azure Web App
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: ${{ env.AZURE_API_APP_NAME }}
+          images: ${{ env.DOCKERHUB_USERNAME }}/meu-projeto-api:latest
+          slot-name: Production
+
+      # Deploy Frontend no Azure
+      - name: Deploy Frontend to Azure Web App
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: ${{ env.AZURE_FRONTEND_APP_NAME }}
+          images: ${{ env.DOCKERHUB_USERNAME }}/meu-projeto-frontend:latest
+          slot-name: Production

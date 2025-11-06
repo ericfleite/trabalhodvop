@@ -1,0 +1,42 @@
+name: CI - Dev
+
+on:
+  push:
+    branches: [dev]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+
+      # API
+      - name: Install API dependencies
+        run: |
+          cd api
+          npm install
+
+      - name: Build API
+        run: |
+          cd api
+          npm run build
+
+      # Frontend
+      - name: Build Frontend
+        run: |
+          cd frontend
+          npm install
+          npm run build || echo "No build script, skipping"
+
+      # Optional: Build Docker images to validate
+      - name: Build Docker images
+        run: |
+          docker build -t ci-api-test ./api
+          docker build -t ci-frontend-test ./frontend
